@@ -1,0 +1,19 @@
+@import 'github-markdown-css/github-markdown-light.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .u-btn {
+    @apply py-1 px-4 text-gray-600 m-1 border-gray-500 border-2
+            text-sm hover:bg-gray-600 hover:text-white duration-75 focus:outline-none
+            focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75;
+  }
+  .u-error {
+    @apply text-red-500;
+  }
+}
+
+.markdown-body p {
+  margin-bottom: 8px;
+}
