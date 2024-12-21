@@ -1,8 +1,23 @@
+import { APP, ChangeEvent, Message, sha256, storage } from "./Common";
 import { createEffect, createSignal, onMount, Show } from "solid-js";
-import { ChangeEvent, Message, sha256, storage } from "./Common";
 import { marked } from "marked";
 
-const models = ["gpt-4o-mini", "gpt-4o", "o1-mini", "o1-preview", "gemini-1.5-flash", "gemini-1.5-pro"];
+// const models = ["gpt-4o-mini", "gpt-4o", "o1-mini", "o1-preview", "gemini-1.5-flash", "gemini-1.5-pro"];
+
+interface Model {
+  key: string;
+  name: string;
+  model: string;
+}
+
+const MODELS: Model[] = [
+  { key: "gpt-4o-mini", name: "openai", model: "gpt-4o-mini" },
+  { key: "gpt-4o", name: "openai", model: "gpt-4o" },
+  { key: "o1-mini", name: "openai", model: "o1-mini" },
+  { key: "o1-pre", name: "openai", model: "o1-preview" },
+  { key: "2.0-flash", name: "gemini", model: "models/gemini-2.0-flash-exp" },
+  { key: "1.5-pro", name: "gemini", model: "models/gemini-1.5-pro-latest" }
+] as const;
 
 export default function LLM() {
   const [value, _setValue] = createSignal("");
@@ -10,7 +25,7 @@ export default function LLM() {
   const [isListening, setIsListening] = createSignal(false);
   const [messages, setMessages] = createSignal<Message[]>([]);
   const appendCodeblock = () => ((value().match(/```/g)?.length ?? 0) % 2 ? "```" : "");
-  const [model, setModel] = createSignal(storage.model);
+  const [model, setModel] = createSignal<Model>(MODELS.filter(x => x.key === storage.model)[0]);
   let textarea = document.createElement("textarea");
 
   function setValue(value: string) {
@@ -27,10 +42,10 @@ export default function LLM() {
     setMessages([]);
   }
 
-  function changeModel(model: string) {
+  function changeModel(model: Model) {
     textarea.focus();
     setModel(model);
-    storage.model = model;
+    storage.model = model.key;
     if (messages().length) {
       setValue(messages()[0].content);
       setMessages([]);
@@ -48,9 +63,9 @@ export default function LLM() {
     setValue("");
     setIsListening(true);
     setAsyncValue("");
-    const data = JSON.stringify({ messages: newMessages, model: model() });
+    const data = JSON.stringify({ messages: newMessages, ...model() });
     const hash = await sha256(storage.salt + data);
-    const ws = new WebSocket(`wss://${location.host}/api/llm/ws/${hash}`);
+    const ws = new WebSocket(`wss://${location.host}/api/${APP}/ws/${hash}`);
     ws.onopen = () => ws.send(data);
     ws.onmessage = e => {
       setAsyncValue(asyncValue() + e.data);
@@ -87,12 +102,6 @@ export default function LLM() {
           model={model()}
           setModel={changeModel}
         />
-        {/* <button
-          class=" hover:bg-gray-200 duration-300 rounded border px-4 py-1"
-          onClick={clear}
-        >
-          消去
-        </button> */}
       </div>
       <div class="w-full">
         {messages().map((x: Message) => (
@@ -119,12 +128,6 @@ export default function LLM() {
           />
         </div>
         <div class="px-5">
-          {/*<button
-            class="border border-gray-500  hover:bg-gray-400 h-12 w-24 rounded px-4 py-1"
-            onClick={onClick}
-          >
-            送信
-          </button>*/}
           <button
             class="border border-gray-500  hover:bg-gray-400 h-12 w-24 rounded px-4 py-1"
             onClick={clear}
@@ -139,24 +142,24 @@ export default function LLM() {
   );
 }
 
-function ModelSelect(props: { model: string; setModel: (model: string) => void; onClick: () => void }) {
+function ModelSelect(props: { model: Model; setModel: (model: Model) => void; onClick: () => void }) {
   return (
     <div class="flex px-4">
-      {models.map(x => (
+      {MODELS.map(x => (
         <div class="cursor-pointer border border-gray-500 m-[1px] rounded truncate">
-          {x === props.model ? (
+          {x.key === props.model?.key ? (
             <div
               onClick={() => props.onClick()}
               class="p-2 rounded bg-gray-500 text-white hover:bg-gray-600"
             >
-              {x}
+              {x.key}
             </div>
           ) : (
             <div
               onClick={() => props.setModel(x)}
               class="p-2 hover:bg-gray-200 duration-200"
             >
-              {x}
+              {x.key}
             </div>
           )}
         </div>
@@ -164,26 +167,6 @@ function ModelSelect(props: { model: string; setModel: (model: string) => void; 
     </div>
   );
 }
-
-// function ModelSelect() {
-//   function onChange(event: ChangeEvent<HTMLSelectElement>) {
-//     storage.model = event.currentTarget.value;
-//   }
-
-//   return (
-//     <div>
-//       <select
-//         class="border-gray-300 border rounded w-48 p-2"
-//         value={storage.model}
-//         onChange={onChange}
-//       >
-//         {models.map(x => (
-//           <option value={x}>{x}</option>
-//         ))}
-//       </select>
-//     </div>
-//   );
-// }
 
 function MessageWindow(props: Message) {
   let div = document.createElement("div");

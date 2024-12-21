@@ -15,17 +15,18 @@ from google.generativeai import GenerativeModel
 load_dotenv(f"{dirname(__file__)}/.env")
 openai = AsyncOpenAI()
 generativeai.configure(api_key=environ["GEMINI_API_KEY"])
-router = APIRouter(prefix="/api/gpt")
+router = APIRouter(prefix="/api/llm")
 salt = environ["SALT"]
 
 logger = getLogger()
 logger.setLevel(INFO)
-handler = RotatingFileHandler('llm/log/app.log', maxBytes=100 * 1024, backupCount=10)
+handler = RotatingFileHandler("llm/log/app.log", maxBytes=100 * 1024, backupCount=10)
 handler.setFormatter(Formatter("[%(asctime)s] %(message)s"))
 logger.addHandler(handler)
 
 system = "Answer in markdown format. For programming questions, no explanation is required, just show the code."
 logger.info(f"SYSTEM: {system}")
+
 
 @router.websocket("/ws/{hash}")
 async def websocket_endpoint(hash, websocket: WebSocket):
@@ -37,11 +38,12 @@ async def websocket_endpoint(hash, websocket: WebSocket):
     d = loads(text)
     messages = d["messages"]
     model = d["model"]
+    name = d["name"]
     logger.info(f"MODEL: {model}")
     logger.info(f"PROMPT: {messages[-1]['content']}")
     answer = ""
-    if "gemini" in model:
-        model = GenerativeModel(f"models/{model}-latest", system_instruction=[system])
+    if name == "gemini":
+        model = GenerativeModel(model, system_instruction=[system])
         new_messages = []
         for message in messages:
             role = "user" if message["role"] == "user" else "model"

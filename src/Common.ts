@@ -1,4 +1,5 @@
 export type ChangeEvent<T> = Event & { currentTarget: T; target: Element };
+export const APP = "llm";
 
 export interface Message {
   role: "system" | "user" | "assistant";
@@ -6,7 +7,7 @@ export interface Message {
 }
 
 export async function request(method: "GET" | "POST" | "PUT", path: string, post?: unknown) {
-  const res = await fetch("/api/llm" + path, {
+  const res = await fetch(`/api/${APP}${path}`, {
     method: method,
     mode: "cors",
     headers: { "Content-Type": "application/json" },
@@ -17,10 +18,10 @@ export async function request(method: "GET" | "POST" | "PUT", path: string, post
   return json;
 }
 
-export const storage = new Proxy(JSON.parse(localStorage.llm ?? "{}"), {
+export const storage = new Proxy(JSON.parse(localStorage[APP] ?? "{}"), {
   set: (obj: { [x: string]: any }, prop: string, value: any) => {
     obj[prop] = value;
-    localStorage.llm = JSON.stringify(obj);
+    localStorage[APP] = JSON.stringify(obj);
     return true;
   }
 }) as {

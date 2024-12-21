@@ -2,7 +2,9 @@ import { defineConfig, loadEnv } from "vite";
 import solidPlugin from "vite-plugin-solid";
 import { VitePWA } from "vite-plugin-pwa";
 
+const isBuild = process.argv.includes("build");
 const env = loadEnv("production", process.cwd());
+
 export default defineConfig({
   server: {
     port: 45179,
@@ -17,7 +19,7 @@ export default defineConfig({
     target: "esnext",
     outDir: "./llm/dist"
   },
-  base: process.argv.includes("build") ? "./" : env.VITE_DEVURL,
+  base: isBuild ? "./" : env.VITE_DEVURL,
   plugins: [
     solidPlugin(),
     VitePWA({
