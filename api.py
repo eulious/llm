@@ -1,8 +1,8 @@
-# server_gemini.py
+#!/usr/bin/env python3
 
+from re import match
 from os import environ
 from json import loads
-from dotenv import load_dotenv
 from openai import AsyncOpenAI
 from google import generativeai
 from hashlib import sha256
@@ -12,7 +12,11 @@ from logging import INFO, getLogger, Formatter
 from logging.handlers import RotatingFileHandler
 from google.generativeai import GenerativeModel
 
-load_dotenv(f"{dirname(__file__)}/.env")
+for line in open(f"{dirname(__file__)}/.env").readlines():
+    if not line.strip().startswith("#") and "=" in line:
+        key, value = [x.strip() for x in line.split("=", 1)]
+        environ[key] = value[1:-1] if match(r'["\']', value) else value
+
 openai = AsyncOpenAI()
 generativeai.configure(api_key=environ["GEMINI_API_KEY"])
 router = APIRouter(prefix="/api/llm")

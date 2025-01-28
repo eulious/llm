@@ -2,8 +2,6 @@ import { APP, ChangeEvent, Message, sha256, storage } from "./Common";
 import { createEffect, createSignal, onMount, Show } from "solid-js";
 import { marked } from "marked";
 
-// const models = ["gpt-4o-mini", "gpt-4o", "o1-mini", "o1-preview", "gemini-1.5-flash", "gemini-1.5-pro"];
-
 interface Model {
   key: string;
   name: string;
@@ -15,8 +13,7 @@ const MODELS: Model[] = [
   { key: "gpt-4o", name: "openai", model: "gpt-4o" },
   { key: "o1-mini", name: "openai", model: "o1-mini" },
   { key: "o1-pre", name: "openai", model: "o1-preview" },
-  { key: "2.0-flash", name: "gemini", model: "models/gemini-2.0-flash-exp" },
-  { key: "1.5-pro", name: "gemini", model: "models/gemini-1.5-pro-latest" }
+  { key: "2.0-flash", name: "gemini", model: "models/gemini-2.0-flash-exp" }
 ] as const;
 
 export default function LLM() {
@@ -91,17 +88,20 @@ export default function LLM() {
     }
   }
 
+  function changeHistory(proceed: number) {}
+
   return (
     <div
       onKeyDown={onDeleteKeyDown}
       class="py-3 overflow-y-scroll h-screen"
     >
-      <div class="pb-2 flex justify-end">
+      <div class="pb-2 px-4 w-full flex justify-end">
         <ModelSelect
           onClick={onClick}
           model={model()}
           setModel={changeModel}
         />
+        <HistoryButton onClick={changeHistory} />
       </div>
       <div class="w-full">
         {messages().map((x: Message) => (
@@ -120,7 +120,7 @@ export default function LLM() {
             ref={textarea}
             onKeyDown={onReturnKeyDown}
             rows="1"
-            class="scrollbar overflow-hidden w-full p-3 rounded-md resize-none border-gray-300 text-gray-700 text-lg outline-gray-300 border"
+            class="scrollbar overflow-hidden w-full p-3 ml-2 rounded-md resize-none border-gray-300 text-gray-700 text-lg outline-gray-300 border"
             autocomplete="off"
             spellcheck={false}
             value={value()}
@@ -129,7 +129,7 @@ export default function LLM() {
         </div>
         <div class="px-5">
           <button
-            class="border border-gray-500  hover:bg-gray-400 h-12 w-24 rounded px-4 py-1"
+            class="border border-gray-500  hover:bg-gray-400 h-12 w-20 rounded px-4 py-1"
             onClick={clear}
           >
             消去
@@ -144,7 +144,7 @@ export default function LLM() {
 
 function ModelSelect(props: { model: Model; setModel: (model: Model) => void; onClick: () => void }) {
   return (
-    <div class="flex px-4">
+    <>
       {MODELS.map(x => (
         <div class="cursor-pointer border border-gray-500 m-[1px] rounded truncate">
           {x.key === props.model?.key ? (
@@ -164,7 +164,7 @@ function ModelSelect(props: { model: Model; setModel: (model: Model) => void; on
           )}
         </div>
       ))}
-    </div>
+    </>
   );
 }
 
@@ -193,4 +193,41 @@ function MessageWindow(props: Message) {
       </div>
     );
   }
+}
+
+function HistoryButton(props: { onClick: (value: number) => void }) {
+  return (
+    <div class="h-2 text-center align-middle">
+      <div
+        onClick={() => props.onClick(-1)}
+        class="p-1 px-3 h-6 hover:bg-gray-200 duration-200 cursor-pointer border border-gray-300 mx-[1px] rounded truncate"
+      >
+        <svg
+          width="10"
+          height="10"
+        >
+          <path
+            d="M 5 1 L 1 9 L 9 9 Z"
+            stroke="gray"
+            fill="none"
+          />
+        </svg>
+      </div>
+      <div
+        onClick={() => props.onClick(1)}
+        class="p-1 px-3 h-5 hover:bg-gray-200 duration-200 cursor-pointer border border-gray-300 mx-[1px] rounded truncate"
+      >
+        <svg
+          width="10"
+          height="10"
+        >
+          <path
+            d="M 1 1 L 5 9 L 9 1 Z"
+            stroke="gray"
+            fill="none"
+          />
+        </svg>
+      </div>
+    </div>
+  );
 }

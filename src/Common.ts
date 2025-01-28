@@ -27,6 +27,7 @@ export const storage = new Proxy(JSON.parse(localStorage[APP] ?? "{}"), {
 }) as {
   salt: string;
   model: string;
+  history: Message[][];
 };
 
 export async function sha256(message: string): Promise<string> {
