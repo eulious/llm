@@ -1,8 +1,8 @@
 /* @refresh reload */
 import { render } from "solid-js/web";
-import LLM from "./LLM";
+import App from "./App";
 import "./index.css";
 
 window.onload = () => {
-  render(() => <LLM />, document.getElementById("root")!);
+  render(() => <App />, document.getElementById("root")!);
 };

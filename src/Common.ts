@@ -1,6 +1,21 @@
 export type ChangeEvent<T> = Event & { currentTarget: T; target: Element };
 export const APP = "llm";
 
+export interface Model {
+  name: string;
+  provider: string;
+  model: string;
+}
+
+export const MODELS: Model[] = [
+  { name: "4o-mini", provider: "openai", model: "gpt-4o-mini" },
+  { name: "4o", provider: "openai", model: "gpt-4o" },
+  { name: "o1-mini", provider: "openai", model: "o1-mini" },
+  // { key: "o1-pre", name: "openai", model: "o1-preview" },
+  { name: "flash", provider: "gemini", model: "models/gemini-2.0-flash-exp" },
+  { name: "think", provider: "gemini", model: "gemini-2.5-pro-exp-03-25" }
+] as const;
+
 export interface Message {
   role: "system" | "user" | "assistant";
   content: string;
